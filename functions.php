@@ -1,127 +1,97 @@
 <?php
 /**
- * RJ Plumbing theme — plumbing business template by Neural Labs.
+ * R. Jacobs Plumbing theme.
  *
- * Business details (name, phone, areas, hours, reviews) are Customizer settings,
- * so the same theme can be reused for another plumbing client by changing them.
+ * Every front-end URL is answered from pages/, built from the approved static design in
+ * source/ by tools/build-from-export.mjs. Edit the design there and rebuild; don't edit pages/.
+ * wp-admin, wp-login.php and the REST API are untouched.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RJP_VERSION', '1.0.0' );
-
-require get_template_directory() . '/inc/customizer.php';
-require get_template_directory() . '/inc/service-requests.php';
-
-add_action( 'after_setup_theme', function () {
-	add_theme_support( 'title-tag' );
-	add_theme_support( 'post-thumbnails' );
-	add_theme_support( 'custom-logo', array( 'height' => 80, 'width' => 240, 'flex-height' => true, 'flex-width' => true ) );
-	add_theme_support( 'html5', array( 'search-form', 'gallery', 'caption', 'script', 'style', 'navigation-widgets' ) );
-	add_theme_support( 'responsive-embeds' );
-
-	register_nav_menus( array(
-		'footer' => __( 'Footer menu', 'rj-plumbing' ),
-	) );
-} );
+require get_template_directory() . '/inc/requests.php';
 
 /**
- * Version string for a theme file: its modified time, so browsers pick up edits.
+ * Path of the current request relative to the site home, without slashes ("" for the homepage).
  */
-function rjp_ver( $relative ) {
-	$file = get_template_directory() . '/' . $relative;
-	return is_file( $file ) ? (string) filemtime( $file ) : RJP_VERSION;
-}
-
-add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_style( 'rjp-fonts', 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap', array(), null );
-	wp_enqueue_style( 'rjp-theme', get_stylesheet_uri(), array( 'rjp-fonts' ), rjp_ver( 'style.css' ) );
-	wp_enqueue_script( 'rjp-main', get_template_directory_uri() . '/assets/js/main.js', array(), rjp_ver( 'assets/js/main.js' ), array( 'strategy' => 'defer', 'in_footer' => true ) );
-
-	// The front page is hand-built and uses no blocks.
-	if ( is_front_page() ) {
-		wp_dequeue_style( 'wp-block-library' );
-		wp_dequeue_style( 'global-styles' );
-		wp_dequeue_style( 'classic-theme-styles' );
+function rjp_request_route() {
+	$path = (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH );
+	$home = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+	if ( 0 === strpos( $path, $home ) ) {
+		$path = substr( $path, strlen( $home ) );
 	}
-} );
+	return trim( rawurldecode( $path ), '/' );
+}
 
-add_action( 'wp_head', function () {
-	echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
-	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-	echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( get_template_directory_uri() . '/assets/img/favicon.svg' ) . '">' . "\n";
-	echo '<meta name="theme-color" content="#0B1B2B">' . "\n";
-	if ( is_front_page() ) {
-		echo '<meta name="description" content="' . esc_attr( rjp_opt( 'hero_text' ) ) . '">' . "\n";
-		rjp_schema();
+/**
+ * Built page file for a route, or null when there is none.
+ */
+function rjp_page_file( $route ) {
+	if ( ! preg_match( '#^[a-z0-9\-/]*$#', $route ) || false !== strpos( $route, '..' ) ) {
+		return null;
 	}
-}, 1 );
+	$file = get_template_directory() . '/pages/' . ( '' === $route ? 'index' : $route ) . '.html';
+	return is_file( $file ) ? $file : null;
+}
 
-add_filter( 'pre_get_document_title', function ( $title ) {
-	if ( is_front_page() ) {
-		return rjp_opt( 'business_name' ) . ' | ' . rjp_opt( 'tagline' );
+function rjp_page_title( $route ) {
+	static $titles = null;
+	if ( null === $titles ) {
+		$titles = json_decode( (string) file_get_contents( get_template_directory() . '/pages/titles.json' ), true );
 	}
-	return $title;
-} );
-
-/**
- * Print an icon from the sprite in header.php.
- */
-function rjp_icon( $name, $class = '' ) {
-	printf( '<svg class="icon %s" aria-hidden="true"><use href="#i-%s"/></svg>', esc_attr( $class ), esc_attr( $name ) );
+	return $titles[ $route ] ?? 'R. Jacobs Plumbing';
 }
 
-/**
- * tel: link for the business phone number.
- */
-function rjp_tel() {
-	return 'tel:' . preg_replace( '/[^0-9+]/', '', rjp_opt( 'phone' ) );
-}
-
-/**
- * Services shown on the front page. Filter 'rjp_services' to change them per client.
- */
-function rjp_services() {
-	return apply_filters( 'rjp_services', array(
-		array( 'icon' => 'alert', 'title' => 'Emergency repairs', 'text' => 'Burst pipes, major leaks and backups handled fast, day or night.' ),
-		array( 'icon' => 'drain', 'title' => 'Drain cleaning', 'text' => 'Slow or blocked sinks, tubs, toilets and floor drains cleared properly.' ),
-		array( 'icon' => 'flame', 'title' => 'Water heaters', 'text' => 'Tank and tankless repair, replacement and new installs.' ),
-		array( 'icon' => 'drop', 'title' => 'Leak detection', 'text' => 'Find hidden leaks early and stop water damage before it spreads.' ),
-		array( 'icon' => 'pump', 'title' => 'Sump pumps', 'text' => 'Inspection, repair and replacement to keep your basement dry.' ),
-		array( 'icon' => 'faucet', 'title' => 'Fixtures & faucets', 'text' => 'Taps, toilets, showers and sinks repaired or upgraded.' ),
-		array( 'icon' => 'pipe', 'title' => 'Sewer & water lines', 'text' => 'Camera inspection, repairs and line replacement.' ),
-		array( 'icon' => 'wrench', 'title' => 'Renovation plumbing', 'text' => 'Rough-ins and finishing for kitchens, bathrooms and basements.' ),
+function rjp_send_page( $route, $file, $status ) {
+	$assets = get_template_directory_uri() . '/assets';
+	$body   = strtr( (string) file_get_contents( $file ), array(
+		'{{BASE}}'        => untrailingslashit( home_url() ),
+		'{{ASSETS}}'      => $assets,
+		'{{FORM_ACTION}}' => esc_url( admin_url( 'admin-post.php' ) ),
+		'{{FORM_FIELDS}}' => rjp_form_fields( $route ),
 	) );
+
+	status_header( $status );
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+	?>
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title><?php echo esc_html( html_entity_decode( rjp_page_title( $route ), ENT_QUOTES ) ); ?></title>
+<link rel="icon" type="image/svg+xml" href="<?php echo esc_url( $assets . '/images/rje-mark.svg' ); ?>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&amp;family=Inter:wght@400..700&amp;display=swap">
+<link rel="stylesheet" href="<?php echo esc_url( $assets . '/site.css?ver=' . filemtime( get_template_directory() . '/assets/site.css' ) ); ?>">
+</head>
+<body>
+<?php echo $body; // phpcs:ignore WordPress.Security.EscapeOutput -- approved static design markup. ?>
+</body>
+</html>
+	<?php
+	exit;
 }
 
-/**
- * Common questions. Filter 'rjp_faqs' to change them per client.
- */
-function rjp_faqs() {
-	return apply_filters( 'rjp_faqs', array(
-		array( 'q' => 'Do you offer emergency plumbing service?', 'a' => 'Yes. Call us any time for burst pipes, flooding, sewer backups or no hot water, and we’ll get someone to you as quickly as we can.' ),
-		array( 'q' => 'Will I know the price before work starts?', 'a' => 'Yes. We look at the problem first and give you an upfront price. No work starts until you approve it.' ),
-		array( 'q' => 'What areas do you serve?', 'a' => 'See the service areas listed on this page. If you’re nearby but not listed, call us — we can often still help.' ),
-		array( 'q' => 'Do you repair and install water heaters?', 'a' => 'We repair, replace and install both tank and tankless water heaters, and can help you choose the right size for your home.' ),
-		array( 'q' => 'How do I book a service call?', 'a' => 'Call us or send a request with the form below. We’ll get back to you to confirm a time.' ),
-	) );
-}
+// Priority 0: answer before WordPress's canonical redirects try to "fix" these URLs.
+add_action(
+	'template_redirect',
+	function () {
+		if ( is_feed() || is_robots() || is_trackback() || is_preview() ) {
+			return;
+		}
+		$route = rjp_request_route();
+		$file  = rjp_page_file( $route );
+		if ( $file ) {
+			rjp_send_page( $route, $file, 200 );
+		}
+		rjp_send_page( '404', get_template_directory() . '/pages/404.html', 404 );
+	},
+	0
+);
 
-/**
- * LocalBusiness structured data for search engines, built from the Customizer settings.
- */
-function rjp_schema() {
-	$data = array(
-		'@context'  => 'https://schema.org',
-		'@type'     => 'Plumber',
-		'name'      => rjp_opt( 'business_name' ),
-		'telephone' => rjp_opt( 'phone' ),
-		'email'     => rjp_opt( 'email' ),
-		'url'       => home_url( '/' ),
-		'address'   => rjp_opt( 'address' ),
-		'areaServed' => rjp_areas(),
-	);
-	echo '<script type="application/ld+json">' . wp_json_encode( $data ) . '</script>' . "\n";
-}
+add_filter( 'wp_sitemaps_enabled', '__return_false' );

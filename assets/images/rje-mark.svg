@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 30 512 470" role="img" aria-label="RJE">
+  <defs>
+    <linearGradient id="bh" gradientUnits="userSpaceOnUse" x1="272" y1="0" x2="328" y2="0">
+      <stop offset="0" stop-color="#5c3a0e"/><stop offset=".18" stop-color="#b98232"/><stop offset=".38" stop-color="#f3d58f"/>
+      <stop offset=".5" stop-color="#fff4d2"/><stop offset=".66" stop-color="#d29b3c"/><stop offset=".88" stop-color="#8a5a17"/><stop offset="1" stop-color="#4e320b"/>
+    </linearGradient>
+    <linearGradient id="bs" href="#bh" x1="52" x2="108"/>
+    <linearGradient id="bc" href="#bh" x1="266" x2="334"/>
+    <linearGradient id="bcs" href="#bh" x1="46" x2="114"/>
+    <linearGradient id="bv" gradientUnits="userSpaceOnUse" x1="0" y1="48" x2="0" y2="100">
+      <stop offset="0" stop-color="#5c3a0e"/><stop offset=".2" stop-color="#b98232"/><stop offset=".4" stop-color="#f3d58f"/>
+      <stop offset=".52" stop-color="#fff4d2"/><stop offset=".7" stop-color="#d29b3c"/><stop offset=".9" stop-color="#8a5a17"/><stop offset="1" stop-color="#4e320b"/>
+    </linearGradient>
+    <linearGradient id="bvc" href="#bv" y1="42" y2="106"/>
+    <radialGradient id="br" gradientUnits="userSpaceOnUse" cx="190" cy="345" r="138">
+      <stop offset=".594" stop-color="#4e320b"/><stop offset=".66" stop-color="#b98232"/><stop offset=".74" stop-color="#f3d58f"/>
+      <stop offset=".79" stop-color="#fff4d2"/><stop offset=".86" stop-color="#d29b3c"/><stop offset=".95" stop-color="#8a5a17"/><stop offset="1" stop-color="#4e320b"/>
+    </radialGradient>
+    <g id="pipe">
+      <path d="M328 345A138 138 0 0 1 52 345H108A82 82 0 0 0 272 345Z" fill="url(#br)"/>
+      <rect x="272" y="96" width="56" height="250" fill="url(#bh)"/>
+      <rect x="52" y="322" width="56" height="24" fill="url(#bs)"/>
+      <rect x="46" y="318" width="68" height="16" rx="3" fill="url(#bcs)"/>
+      <rect x="266" y="318" width="68" height="18" rx="3" fill="url(#bc)"/>
+      <rect x="266" y="98" width="68" height="26" rx="3" fill="url(#bc)"/>
+      <rect x="222" y="48" width="166" height="52" fill="url(#bv)"/>
+      <rect x="212" y="42" width="20" height="64" rx="3" fill="url(#bvc)"/>
+      <rect x="378" y="42" width="20" height="64" rx="3" fill="url(#bvc)"/>
+    </g>
+    <g id="letters">
+      <path fill-rule="evenodd" d="M78 150H200C238 150 256 172 256 199C256 220 244 236 224 243L264 305H204L170 249H130V305H78ZM130 190V212H194C204 212 209 207 209 201C209 195 204 190 194 190Z"/>
+      <path d="M342 150H512V191H394V208H500V246H394V264H512V305H342Z"/>
+    </g>
+  </defs>
+  <!-- white outline, as on the van livery -->
+  <g fill="#fff" stroke="#fff" stroke-width="16" stroke-linejoin="round">
+    <use href="#pipe"/>
+    <rect x="44" y="132" width="482" height="190"/>
+  </g>
+  <rect x="44" y="132" width="482" height="190" fill="#fff"/>
+  <use href="#letters" fill="#1d3fd1"/>
+  <use href="#pipe"/>
+</svg>

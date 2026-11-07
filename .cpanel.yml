@@ -1,10 +1,13 @@
 ---
 # cPanel Git Version Control runs these tasks on "Deploy HEAD Commit".
 # Copies the theme into the demo.neurallabs.ca/rj-plumbing WordPress site only.
+# pages/ and assets/ are replaced whole so removed files don't linger; the rm -f line clears
+# templates from the first version of this theme.
 deployment:
   tasks:
     - export DEPLOYPATH=/home/zushtazz/demo.neurallabs.ca/rj-plumbing/wp-content/themes/rj-plumbing/
     - /bin/mkdir -p $DEPLOYPATH
-    - /bin/rm -rf $DEPLOYPATH/assets $DEPLOYPATH/inc
-    - /bin/cp -R assets inc $DEPLOYPATH
-    - /bin/cp style.css functions.php header.php footer.php front-page.php index.php page.php single.php 404.php $DEPLOYPATH
+    - /bin/rm -rf $DEPLOYPATH/pages $DEPLOYPATH/assets $DEPLOYPATH/inc
+    - /bin/rm -f $DEPLOYPATH/front-page.php $DEPLOYPATH/header.php $DEPLOYPATH/footer.php $DEPLOYPATH/page.php $DEPLOYPATH/single.php $DEPLOYPATH/404.php
+    - /bin/cp -R pages assets inc $DEPLOYPATH
+    - /bin/cp style.css functions.php index.php $DEPLOYPATH
